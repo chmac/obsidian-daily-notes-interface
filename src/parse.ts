@@ -48,6 +48,72 @@ export function getDateFromFile(
   file: TFile,
   granularity: IGranularity
 ): Moment | null {
+  if (granularity === "week") {
+    const format = getWeeklyNoteSettings().format;
+    // Firstly, check if this path matches the week format because moment will
+    // parse a date even if the format is completely wrong. To do this:
+    // - Build a date for the weekly format year = 2025 and week = 01
+    // - Then format that with the weekly formatting option
+    // - Replace 2025 with [0-9]{4}
+    // - Replace 01 with [0-9]{2}
+    // - Convert that to a regex
+    // - Match it against the path
+    // - If it fails, then this is not a weekly note, return null now
+    if (
+      file.path.match(
+        new RegExp(
+          window
+            .moment("2025-01-01")
+            .format(format)
+            .replace("2025", "[0-9]{4}")
+            .replace("01", "[0-9]{2}")
+        )
+      ) === null
+    ) {
+      return null;
+    }
+    // Moment will only get the year correct, and match 1 Jan
+    const dateWithOnlyCorrectYear = window.moment(file.path, format);
+    const fileNameFormat = format.split("/").pop();
+    const dateWithOnlyCorrectWeek = window.moment(
+      file.basename,
+      fileNameFormat
+    );
+    const weekNumber = dateWithOnlyCorrectWeek.format("ww");
+    const date = dateWithOnlyCorrectYear
+      .day("Monday")
+      .week(parseInt(weekNumber));
+    if (
+      dateWithOnlyCorrectWeek.isValid() &&
+      dateWithOnlyCorrectYear.isValid() &&
+      date.isValid()
+    ) {
+      return date;
+    }
+    return null;
+  }
+  if (granularity === "quarter") {
+    const format = getQuarterlyNoteSettings().format;
+    const dateWithOnlyCorrectYear = window.moment(file.path, format);
+    const fileNameFormat = format.split("/").pop();
+    const dateWithOnlyCorrectQuarter = window.moment(
+      file.basename,
+      fileNameFormat
+    );
+    // Some date notes will be parsed as quarters
+    const validationOutput = dateWithOnlyCorrectQuarter.format(fileNameFormat);
+    const quarterNumber = dateWithOnlyCorrectQuarter.format("Q");
+    const date = dateWithOnlyCorrectYear.quarter(parseInt(quarterNumber));
+    if (
+      validationOutput === file.basename &&
+      dateWithOnlyCorrectYear.isValid() &&
+      dateWithOnlyCorrectQuarter.isValid() &&
+      date.isValid()
+    ) {
+      return date;
+    }
+    return null;
+  }
   return getDateFromFilename(file.basename, granularity);
 }
 
