@@ -1,4 +1,4 @@
-import { normalizePath, Notice } from "obsidian";
+import { normalizePath, Notice, TFile } from "obsidian";
 
 interface IFold {
   from: number;
@@ -90,4 +90,15 @@ export async function getTemplateInfo(
     new Notice("Failed to read the daily note template");
     return ["", null];
   }
+}
+
+export async function runTemplaterOnFile(file: TFile): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const templaterPlugin = (window.app as any).plugins.getPlugin(
+    "templater-obsidian"
+  );
+  if (!templaterPlugin?.templater) {
+    return;
+  }
+  await templaterPlugin.templater.overwrite_file_commands(file);
 }

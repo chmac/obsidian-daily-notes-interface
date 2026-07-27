@@ -4,7 +4,7 @@ import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { appHasYearlyNotesPluginLoaded } from "./index";
 import { getDateFromFile, getDateUID } from "./parse";
 import { getYearlyNoteSettings } from "./settings";
-import { getNotePath, getTemplateInfo } from "./vault";
+import { getNotePath, getTemplateInfo, runTemplaterOnFile } from "./vault";
 
 export class YearlyNotesFolderMissingError extends Error {}
 
@@ -49,6 +49,8 @@ export async function createYearlyNote(date: Moment): Promise<TFile> {
         .replace(/{{\s*time\s*}}/gi, window.moment().format("HH:mm"))
         .replace(/{{\s*title\s*}}/gi, filename)
     );
+
+    await runTemplaterOnFile(createdFile);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window.app as any).foldManager.save(createdFile, IFoldInfo);

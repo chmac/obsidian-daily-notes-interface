@@ -3,7 +3,7 @@ import { App, normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 
 import { getDateFromFile, getDateUID } from "./parse";
 import { getDailyNoteSettings } from "./settings";
-import { getTemplateInfo, getNotePath } from "./vault";
+import { getTemplateInfo, getNotePath, runTemplaterOnFile } from "./vault";
 
 export class DailyNotesFolderMissingError extends Error {}
 
@@ -60,6 +60,8 @@ export async function createDailyNote(date: Moment): Promise<TFile> {
           date.clone().add(1, "d").format(format)
         )
     );
+
+    await runTemplaterOnFile(createdFile);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (app as any).foldManager.save(createdFile, IFoldInfo);

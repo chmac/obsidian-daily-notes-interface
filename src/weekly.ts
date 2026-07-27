@@ -4,7 +4,7 @@ import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { appHasWeeklyNotesPluginLoaded } from "./index";
 import { getDateFromFile, getDateUID } from "./parse";
 import { getWeeklyNoteSettings } from "./settings";
-import { getNotePath, getTemplateInfo } from "./vault";
+import { getNotePath, getTemplateInfo, runTemplaterOnFile } from "./vault";
 
 export class WeeklyNotesFolderMissingError extends Error {}
 
@@ -73,6 +73,8 @@ export async function createWeeklyNote(date: Moment): Promise<TFile> {
           }
         )
     );
+
+    await runTemplaterOnFile(createdFile);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window.app as any).foldManager.save(createdFile, IFoldInfo);
